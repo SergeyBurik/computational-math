@@ -24,7 +24,6 @@ with open("Y.txt", "w") as X_file:
 
 plt.scatter([x[0] for x in X[:100]], [y for y in Y[:100]], color = '#88c999')
 
-
 # linear regression
 def loss_function(predicted, real):
     res = 0
@@ -86,15 +85,12 @@ for i in range(epochs):
     for i in range(len(anti_gradient)):
         weights[i] += learning_rate * anti_gradient[i]
 
-
 print("MSE", delta_loss)
 print(weights)
 
 predictions = model(X, weights)
-
 plt.scatter([x[0] for x in X[:100]], [y for y in predictions[:100]], color = 'red')
 plt.figure()
 
 plt.plot(list(range(len(learning_history))), learning_history)
-
 plt.show()
