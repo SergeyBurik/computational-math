@@ -1,14 +1,14 @@
 # data generation
-from random import uniform, sample
+from random import uniform, randint
 import matplotlib.pyplot as plt
 import json
 
-weights_num = 10
+weights_num = 20
 
 W = [uniform(-1, 1) for _ in range(weights_num)]
 print(W)
 
-X = [[uniform(0, 2) for _ in range(weights_num - 1)] for _ in range(500)]
+X = [[uniform(0, 2) for _ in range(weights_num - 1)] for _ in range(100000)]
 Y = []
 for x in X:
     res = W[-1]
@@ -49,26 +49,29 @@ def model(X, weights):
 
 weights = [0 for _ in range(len(W))]
 learning_rate = 0.01
-epochs = 3000
+epochs = 5000
 predictions = model(X, weights)
 
 learning_history = []
 
 delta = 0.01
 for i in range(epochs):
-    if i % 100 == 0:
+    if i % 1000 == 0:
         print("epoch", i)
-        
+    
+    random_index = randint(0, len(X) - 1)
+
     # calculate gradient
     # d(W[n])/d(loss_function)
     anti_gradient = []
     for n in range(len(weights)):
         der_weights = weights[::]
         der_weights[n] += delta
-        der_predictions = model(X, der_weights)
+        der_predictions = model([X[random_index]], der_weights)
+        predictions = model([X[random_index]], weights)
 
-        delta_loss = loss_function(der_predictions, Y)
-        loss = loss_function(predictions, Y)
+        delta_loss = loss_function(der_predictions, [Y[random_index]])
+        loss = loss_function(predictions, [Y[random_index]])
 
         learning_history.append(delta_loss)
 
@@ -87,6 +90,7 @@ for i in range(epochs):
 print("MSE", delta_loss)
 print(weights)
 
+predictions = model(X, weights)
 
 plt.scatter([x[0] for x in X[:100]], [y for y in predictions[:100]], color = 'red')
 plt.figure()
