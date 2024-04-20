@@ -1,72 +1,80 @@
-from random import choice, randint, random
+# data generation
+from random import uniform
+import matplotlib.pyplot as plt
+
+W = [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)]
+print(W)
+
+X = [[uniform(1, 2), uniform(1, 2)] for _ in range(10000)]
+Y = [x[0] * W[0] + x[1] * W[1] + W[2] for x in X]
 
 
-def get_random(start, end):
-	return random()*randint(start, end)
+plt.scatter([x[0] for x in X[:100]], [y for y in Y[:100]], color = '#88c999')
 
 
-# dimensions = 3
-# data_size = 100
-#
-# real_weights = [get_random(1, 10) for w in range(dimensions)]
-# print(real_weights)
-# data = []
-# for i in range(data_size):
-# 	obj = [0] * dimensions
-# 	for n in range(dimensions):
-# 		obj[n] = get_random(1, 100) * real_weights[n]
-#
-# 	data.append(obj + [sum(obj)])
-# print(data)
 
-data = [[21, 20, 6], [30, 20, 8], [25, 19, 8]]
-# data = [[1, 2, 3], [3, 7, 10], [1, 9, 10]]
-# data = [[1, 1, 2], [3, 3, 6], [5, 5, 10]]
+# linear regression
+def loss_function(predicted, real):
+    res = 0
+    if len(predicted) != len(real):
+        raise Exception("lengths are not the same")
+    
+    for i in range(len(predicted)):
+        res += (real[i] - predicted[i]) ** 2
+    
+    return res / (2 * len(predicted))
 
+def model(X, weights):
+    predictions = []
+    for x in X:
+        prediction = 0
+        for i in range(len(x)):
+            prediction += x[i] * weights[i]
+        prediction += weights[-1]
+        predictions.append(prediction)
 
-dimensions = len(data[0])
-l = len(data)
-h = 0.1  # learning rate
-lb = 1  # learning memory rate
+    return predictions
 
-
-weights = [random()] * (dimensions-1)
-gradient = [0.1] * (dimensions-1)
+weights = [0.1 for _ in range(len(W))]
+learning_rate = 0.01
 epochs = 1000
 
+predictions = model(X, weights)
 
-def q_(weights):
-	q = 0
-	for i in range(l):
-		q += (sum([data[i][n] * weights[n] for n in range(dimensions-1)]) - data[i][-1]) ** 2
-	q /= l
-	return q
+learning_history = []
+
+delta = 0.01
+for i in range(epochs):
+    if i % 100 == 0:
+        print("epoch", i)
+    # calculate gradient
+
+    # d(W[n])/d(loss_function)
+    anti_gradient = []
+    for n in range(len(weights)):
+        der_weights = weights[::]
+        der_weights[n] += delta
+        der_predictions = model(X, der_weights)
+
+        delta_loss = loss_function(der_predictions, Y)
+        loss = loss_function(predictions, Y)
+
+        learning_history.append(delta_loss)
+
+        derivative = -(delta_loss - loss) / delta
+        predictions = der_predictions
+        anti_gradient.append(derivative)
+
+    # print(anti_gradient)
+    # update weights
+    for i in range(len(anti_gradient)):
+        weights[i] += learning_rate * anti_gradient[i]
 
 
-q = q_(weights)
+print("MSE", delta_loss)
+print(weights)
 
+# plt.scatter(list(range(len(learning_history))), learning_history)
 
-def loss_(x, y, w):
-	return (x * w - y) ** 2
-
-
-# if gradient is negative -> increase w
-# else -> decrease w
-for _ in range(epochs):
-	x1 = choice(data)
-	gradient = []
-	for n in range(dimensions-1):
-		g = (loss_(x1[n], x1[-1], weights[n]-0.01) - loss_(x1[n], x1[-1], weights[n])) / 0.01
-		gradient.append(g)
-	print(gradient, x1)
-
-	for g in range(len(gradient)):
-		if gradient[g] > 0:
-			weights[g] += h
-		else:
-			weights[g] -= h
-
-print("MSE:", q_(weights))
-print("Weights:", weights)
-input = [40, 10]
-print(sum([input[i]*weights[i] for i in range(dimensions-1)]))
+plt.scatter([x[0] for x in X[:100]], [y for y in predictions[:100]], color = 'red')
+plt.show()
