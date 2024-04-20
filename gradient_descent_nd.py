@@ -1,16 +1,28 @@
 # data generation
-from random import uniform
+from random import uniform, sample
 import matplotlib.pyplot as plt
+import json
 
-W = [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)]
+weights_num = 10
+
+W = [uniform(-1, 1) for _ in range(weights_num)]
 print(W)
 
-X = [[uniform(1, 2), uniform(1, 2)] for _ in range(10000)]
-Y = [x[0] * W[0] + x[1] * W[1] + W[2] for x in X]
+X = [[uniform(0, 2) for _ in range(weights_num - 1)] for _ in range(500)]
+Y = []
+for x in X:
+    res = W[-1]
+    for i in range(len(x) - 1):
+        res += x[i] * W[i]
+    Y.append(res)
 
+with open("X.txt", "w") as X_file:
+    X_file.write(json.dumps(X))
+
+with open("Y.txt", "w") as X_file:
+    X_file.write(json.dumps(Y))
 
 plt.scatter([x[0] for x in X[:100]], [y for y in Y[:100]], color = '#88c999')
-
 
 
 # linear regression
@@ -35,10 +47,9 @@ def model(X, weights):
 
     return predictions
 
-weights = [0.1 for _ in range(len(W))]
+weights = [0 for _ in range(len(W))]
 learning_rate = 0.01
-epochs = 1000
-
+epochs = 3000
 predictions = model(X, weights)
 
 learning_history = []
@@ -47,8 +58,8 @@ delta = 0.01
 for i in range(epochs):
     if i % 100 == 0:
         print("epoch", i)
+        
     # calculate gradient
-
     # d(W[n])/d(loss_function)
     anti_gradient = []
     for n in range(len(weights)):
@@ -62,6 +73,8 @@ for i in range(epochs):
         learning_history.append(delta_loss)
 
         derivative = -(delta_loss - loss) / delta
+        
+
         predictions = der_predictions
         anti_gradient.append(derivative)
 
@@ -74,7 +87,10 @@ for i in range(epochs):
 print("MSE", delta_loss)
 print(weights)
 
-# plt.scatter(list(range(len(learning_history))), learning_history)
 
 plt.scatter([x[0] for x in X[:100]], [y for y in predictions[:100]], color = 'red')
+plt.figure()
+
+plt.plot(list(range(len(learning_history))), learning_history)
+
 plt.show()
